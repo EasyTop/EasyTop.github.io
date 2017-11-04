@@ -1,4 +1,4 @@
-
+//intializing documetn. 
 $(document).ready(function(){
 	console.log("ready");
 	boxOnClickHandler();
@@ -6,7 +6,7 @@ $(document).ready(function(){
 
 });
 
-
+//sleep funtion. 
 function sleep(ms) {
 	return new Promise(resolve => setTimeout(resolve, ms));
 }
@@ -17,28 +17,25 @@ async function demo() {
 	do{
 	$("#box").css("opacity:100;");
 	await sleep(2000);
-	//FIx THIs we need to save teh data from the api call 
-	//Then update the div. 
-	//problem here is passing the data from one function to the other
-         getJSONP('https://api.coindesk.com/v1/bpi/currentprice.json');
-			console.log(price +"hdhd");
-			
+        getJSONP('https://api.coindesk.com/v1/bpi/currentprice.json');
+			console.log(price +"hdhd");		
 	console.log('Two second later');
 	}
 	while(i = 3);
 }
-
+//click handler
 function boxOnClickHandler(){
 	$("#box").click(function(){
 		console.log("got a click");
 	});
 }
+//updates dive with a new price
 function updateDiv(price){
 		var div = $("<div>"+ price +"</div>");
 		$("#box").html(div);
 }
 
-	
+/*	
 function amountBitcoin(value){
 	var requestURL = 'https://api.coindesk.com/v1/bpi/currentprice.json';
 	var price; 
@@ -65,7 +62,11 @@ function amountBitcoin(value){
 	console.log(price);
 }
 
-
+*
+*/
+//
+// This function is usefull although not universal by anymeans it simply takes a ural and grabs information 
+// out of the json object.  slightly gross. .
 function getJSONP(url) {
 	var requestURL = url;
 	var price; 
