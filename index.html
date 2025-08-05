@@ -1,0 +1,766 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Unit Circle & Hyperbolic Trigonometry</title>
+    <style>
+        :root {
+            --bg-color: #121212;
+            --surface-color: #1e1e1e;
+            --primary-text-color: #e0e0e0;
+            --secondary-text-color: #a0a0a0;
+            --accent-color: #03dac6;
+            --accent-color-dark: #018786;
+            --error-color: #cf6679;
+            --font-family-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            --font-family-mono: "SF Mono", "Fira Code", "Fira Mono", "Roboto Mono", monospace;
+
+            /* Visualize colors */
+            --color-grid: #333;
+            --color-axis: #666;
+            --color-circle: #888;
+            --color-hyperbola: #f0a060;
+            --color-radius: var(--accent-color);
+            --color-sin: #ff6b6b;
+            --color-cos: #4d96ff;
+            --color-tan: #f9c74f;
+            --color-sec: #90be6d;
+            --color-csc: #ffb3ba;
+            --color-cot: #d4a3e2;
+            --color-sinh: #ff8fab;
+            --color-cosh: #bde0fe;
+            --color-p-area: rgba(189, 224, 254, 0.2);
+            --color-text-label: #e0e0e0;
+        }
+
+        *, *::before, *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html {
+            font-size: 16px;
+        }
+
+        body {
+            font-family: var(--font-family-sans);
+            background-color: var(--bg-color);
+            color: var(--primary-text-color);
+            display: flex;
+            flex-direction: column;
+            min-height: 10vh;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 1rem;
+        }
+
+        header {
+            text-align: center;
+            padding: 1.5rem 1rem;
+            border-bottom: 1px solid var(--surface-color);
+        }
+
+        header h1 {
+            font-size: clamp(1.5rem, 5vw, 2.5rem);
+            margin: 0;
+        }
+
+        main {
+            flex-grow: 1;
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 2rem;
+            padding: 2rem 1rem;
+        }
+
+        @media (min-width: 1024px) {
+            main {
+                grid-template-columns: 1fr 380px;
+                max-height: calc(100vh - 150px);
+            }
+        }
+
+        .visualization-wrapper {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: var(--surface-color);
+            border-radius: 12px;
+            padding: 1rem;
+            min-height: 50vh;
+            overflow: hidden;
+        }
+
+        #trig-visualization {
+            width: 100%;
+            height: 100%;
+            max-height: 75vh;
+            display: block;
+            background-color: var(--surface-color);
+        }
+
+        .controls-and-info {
+            background-color: var(--surface-color);
+            border-radius: 12px;
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+
+        @media (min-width: 1024px) {
+            .controls-and-info {
+                overflow-y: auto;
+            }
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .control-group label {
+            font-weight: 500;
+            color: var(--secondary-text-color);
+        }
+
+        #angle-display {
+            border-radius: 6px;
+            font-family: var(--font-family-mono);
+            font-size: 1.1rem;
+            color: var(--accent-color);
+            font-weight: bold;
+            text-align: center;
+            background: var(--bg-color);
+            padding: 0.5rem;
+        }
+
+        input[type="range"] {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 100%;
+            height: 8px;
+            background: var(--bg-color);
+            border-radius: 5px;
+            outline: none;
+            cursor: pointer;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 24px;
+            height: 24px;
+            background: var(--accent-color);
+            border-radius: 50%;
+            border: 4px solid var(--surface-color);
+            transition: background 0.2s ease-in-out;
+        }
+
+        input[type="range"]::-moz-range-thumb {
+            width: 24px;
+            height: 24px;
+            background: var(--accent-color);
+            border-radius: 50%;
+            border: 4px solid var(--surface-color);
+            transition: background 0.2s ease-in-out;
+        }
+
+        input[type="range"]:focus-visible::-webkit-slider-thumb,
+        input[type="range"]:hover::-webkit-slider-thumb {
+            background: var(--accent-color-dark);
+        }
+
+        input[type="range"]:focus-visible::-moz-range-thumb,
+        input[type="range"]:hover::-moz-range-thumb {
+            background: var(--accent-color-dark);
+        }
+
+        .info-panel {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        .info-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .info-group h3 {
+            font-size: 1.1rem;
+            color: var(--primary-text-color);
+            border-bottom: 2px solid var(--accent-color);
+            padding-bottom: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .info-group dl {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .info-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .info-item dt {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--secondary-text-color);
+        }
+        
+        .info-item dt label {
+            cursor: pointer;
+            user-select: none;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .info-item .color-swatch {
+            width: 12px;
+            height: 12px;
+            border-radius: 2px;
+            flex-shrink: 0;
+        }
+
+        .info-item dd {
+            font-weight: bold;
+            color: var(--primary-text-color);
+            min-width: 60px;
+            text-align: right;
+        }
+        
+        input[type="checkbox"] {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 16px;
+            height: 16px;
+            border: 2px solid var(--secondary-text-color);
+            border-radius: 4px;
+            cursor: pointer;
+            position: relative;
+        }
+
+        input[type="checkbox"]:checked {
+            background-color: var(--accent-color);
+            border-color: var(--accent-color);
+        }
+
+        input[type="checkbox"]:checked::after {
+            content: '✔';
+            font-size: 12px;
+            color: var(--surface-color);
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-weight: bold;
+        }
+
+
+        footer {
+            text-align: center;
+            padding: 1.5rem 1rem;
+            margin-top: auto;
+            font-size: 0.9rem;
+            color: var(--secondary-text-color);
+            border-top: 1px solid var(--surface-color);
+        }
+
+        footer a {
+            color: var(--accent-color);
+            text-decoration: none;
+            border-radius: 2px;
+        }
+
+        footer a:hover,
+        footer a:focus-visible {
+            text-decoration: underline;
+            outline: none;
+        }
+    </style>
+</head>
+<body>
+    <header class="container">
+        <h1>Interactive Unit Circle & Hyperbolic Trigonometry</h1>
+    </header>
+    <main class="container">
+        <section class="visualization-wrapper">
+            <canvas id="trig-visualization" width="800" height="800"></canvas>
+        </section>
+        <aside class="controls-and-info">
+            <div class="control-group">
+                <label for="angle-slider">Angle (θ) </label>
+                <input type="range" id="angle-slider" min="0" max="360" step="0.1" value="45" aria-valuetext="Angle: 45.0 degrees">
+                <div id="angle-display">45.0° / 0.785 rad</div>
+            </div>
+            <div class="control-group">
+                <label for="zoom-slider">Zoom </label>
+                <input type="range" id="zoom-slider" min="100" max="400" step="1" value="110" aria-valuetext="Zoom: 110">
+                <div id="zoom-display">Zoom Level: 110</div>
+            </div>
+            <div class="info-panel">
+                <div class="info-group">
+                    <h3>Trigonometric</h3>
+                    <dl>
+                        <div class="info-item">
+                            <dt><input type="checkbox" id="toggle-sin" checked data-function="sin"><label for="toggle-sin"><span class="color-swatch" style="background-color: var(--color-sin);"></span>sin(θ) </label></dt>
+                            <dd id="val-sin">0.70711</dd>
+                        </div>
+                        <div class="info-item">
+                            <dt><input type="checkbox" id="toggle-cos" checked data-function="cos"><label for="toggle-cos"><span class="color-swatch" style="background-color: var(--color-cos);"></span>cos(θ) </label></dt>
+                            <dd id="val-cos">0.70711</dd>
+                        </div>
+                        <div class="info-item">
+                            <dt><input type="checkbox" id="toggle-tan" checked data-function="tan"><label for="toggle-tan"><span class="color-swatch" style="background-color: var(--color-tan);"></span>tan(θ) </label></dt>
+                            <dd id="val-tan">1.00000</dd>
+                        </div>
+                        <div class="info-item">
+                            <dt><input type="checkbox" id="toggle-sec" checked data-function="sec"><label for="toggle-sec"><span class="color-swatch" style="background-color: var(--color-sec);"></span>sec(θ) </label></dt>
+                            <dd id="val-sec">1.41421</dd>
+                        </div>
+                        <div class="info-item">
+                            <dt><input type="checkbox" id="toggle-csc" checked data-function="csc"><label for="toggle-csc"><span class="color-swatch" style="background-color: var(--color-csc);"></span>csc(θ) </label></dt>
+                            <dd id="val-csc">1.41421</dd>
+                        </div>
+                        <div class="info-item">
+                            <dt><input type="checkbox" id="toggle-cot" checked data-function="cot"><label for="toggle-cot"><span class="color-swatch" style="background-color: var(--color-cot);"></span>cot(θ) </label></dt>
+                            <dd id="val-cot">1.00000</dd>
+                        </div>
+                    </dl>
+                </div>
+                <div class="info-group">
+                    <h3>Hyperbolic</h3>
+                    <dl>
+                        <div class="info-item">
+                            <dt><input type="checkbox" id="toggle-hyperbola" checked data-function="hyperbola"><label for="toggle-hyperbola"><span class="color-swatch" style="background-color: var(--color-hyperbola);"></span>Hyperbolic Curve </label></dt>
+                            <dd></dd>
+                        </div>
+                        <div class="info-item">
+                            <dt>p = ln(sec(θ) + tan(θ)) </dt>
+                            <dd id="val-p">0.88137</dd>
+                        </div>
+                        <div class="info-item">
+                            <dt><input type="checkbox" id="toggle-sinh" checked data-function="sinh"><label for="toggle-sinh"><span class="color-swatch" style="background-color: var(--color-sinh);"></span>sinh(p) </label></dt>
+                            <dd id="val-sinh">1.00000</dd>
+                        </div>
+                        <div class="info-item">
+                            <dt><input type="checkbox" id="toggle-cosh" checked data-function="cosh"><label for="toggle-cosh"><span class="color-swatch" style="background-color: var(--color-cosh);"></span>cosh(p) </label></dt>
+                            <dd id="val-cosh">1.41421</dd>
+                        </div>
+                        <div class="info-item">
+                            <dt><input type="checkbox" id="toggle-tanh" checked data-function="tanh"><label for="toggle-tanh">tanh(p) </label></dt>
+                            <dd id="val-tanh">0.70711</dd>
+                        </div>
+                        <div class="info-item">
+                            <dt><input type="checkbox" id="toggle-area" checked data-function="area"><label for="toggle-area">Area (p/2)</label></dt>
+                            <dd id="val-area">0.44069</dd>
+                        </div>
+                    </dl>
+                </div>
+            </div>
+        </aside>
+    </main>
+    <footer>
+        <p>Rectified and Hardened by CodeSentinel Omega.</p>
+    </footer>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- DOM Elements
+            const slider = document.getElementById('angle-slider');
+            const zoomSlider = document.getElementById('zoom-slider');
+            const canvas = document.getElementById('trig-visualization');
+            const ctx = canvas.getContext('2d');
+            const checkboxes = document.querySelectorAll('input[type="checkbox"][data-function]');
+
+            const elements = {
+                angleDisplay: document.getElementById('angle-display'),
+                zoomDisplay: document.getElementById('zoom-display'),
+                valSin: document.getElementById('val-sin'),
+                valCos: document.getElementById('val-cos'),
+                valTan: document.getElementById('val-tan'),
+                valSec: document.getElementById('val-sec'),
+                valCsc: document.getElementById('val-csc'),
+                valCot: document.getElementById('val-cot'),
+                valP: document.getElementById('val-p'),
+                valSinh: document.getElementById('val-sinh'),
+                valCosh: document.getElementById('val-cosh'),
+                valTanh: document.getElementById('val-tanh'),
+                valArea: document.getElementById('val-area'),
+            };
+
+            // --- Constants
+            const SVG_BOUNDS = 4; // Max bounds of the coordinate system
+            const EPSILON = 1e-9;
+            const maxP = Math.acosh(SVG_BOUNDS);
+            const hyperbolaPoints = generateHyperbolaPoints(maxP);
+            
+            let visualScale = parseFloat(zoomSlider.value);
+
+
+            // --- Helper Functions
+            function generateHyperbolaPoints(maxP, steps = 50) {
+                const points = [];
+                for (let i = 0; i <= steps; i++) {
+                    const p = (i / steps) * maxP;
+                    points.push({ x: Math.cosh(p), y: Math.sinh(p) });
+                }
+                for (let i = steps - 1; i >= 0; i--) {
+                    const p = (i / steps) * maxP;
+                    points.push({ x: Math.cosh(p), y: -Math.sinh(p) });
+                }
+                return points;
+            }
+
+            function formatValue(val) {
+                if (val === null || val === undefined || isNaN(val)) return 'N/A';
+                if (!isFinite(val)) return val > 0 ? '∞' : '-∞';
+                return val.toFixed(5); 
+            }
+            
+            // Function to get CSS variables
+            function getCssVar(name) {
+                return getComputedStyle(document.documentElement).getPropertyValue(name);
+            }
+
+            // Helper function to draw right-side-up text
+            function drawUprightText(text, x, y, font, color, align = 'center', baseline = 'middle') {
+                ctx.save();
+                ctx.scale(1, -1); // Flip the text back to a readable orientation
+                ctx.font = font;
+                ctx.fillStyle = color;
+                ctx.textAlign = align;
+                ctx.textBaseline = baseline;
+                ctx.fillText(text, x, -y); // Invert y-coordinate to match canvas space
+                ctx.restore();
+            }
+
+            // --- Drawing Functions
+            function drawAxisAndGrid() {
+                const gridColor = getCssVar('--color-grid');
+                const axisColor = getCssVar('--color-axis');
+                const axisLabelColor = getCssVar('--secondary-text-color');
+
+                // Draw grid lines
+                ctx.strokeStyle = gridColor;
+                ctx.lineWidth = 1 / visualScale;
+                ctx.beginPath();
+                for (let i = -SVG_BOUNDS; i <= SVG_BOUNDS; i += 0.5) {
+                    ctx.moveTo(i, -SVG_BOUNDS);
+                    ctx.lineTo(i, SVG_BOUNDS);
+                    ctx.moveTo(-SVG_BOUNDS, i);
+                    ctx.lineTo(SVG_BOUNDS, i);
+                }
+                ctx.stroke();
+
+                // Draw axes
+                ctx.strokeStyle = axisColor;
+                ctx.lineWidth = 2 / visualScale;
+                ctx.beginPath();
+                ctx.moveTo(-SVG_BOUNDS, 0); ctx.lineTo(SVG_BOUNDS, 0);
+                ctx.moveTo(0, -SVG_BOUNDS); ctx.lineTo(0, SVG_BOUNDS);
+                ctx.stroke();
+
+                // Draw axis labels using the new helper function
+                const font = `bold ${10 / visualScale}px sans-serif`;
+                drawUprightText('x', SVG_BOUNDS, 0.1, font, axisLabelColor, 'center', 'middle');
+                drawUprightText('y', 0.1, SVG_BOUNDS, font, axisLabelColor, 'center', 'middle');
+            }
+
+            function drawHyperbola(points) {
+                ctx.strokeStyle = getCssVar('--color-hyperbola');
+                ctx.lineWidth = 2 / visualScale;
+                ctx.setLineDash([5 / visualScale, 5 / visualScale]);
+                ctx.beginPath();
+                if (points.length > 0) {
+                    ctx.moveTo(points[0].x, -points[0].y);
+                    for (let i = 1; i < points.length; i++) {
+                        ctx.lineTo(points[i].x, -points[i].y);
+                    }
+                }
+                ctx.stroke();
+                ctx.setLineDash([]);
+            }
+
+            function drawHyperbolicArea(p) {
+                const steps = 30;
+                ctx.fillStyle = getCssVar('--color-p-area');
+                ctx.beginPath();
+                ctx.moveTo(0, 0);
+                ctx.lineTo(1, 0);
+                for (let i = 1; i <= steps; i++) {
+                    const currentP = (i / steps) * p;
+                    const x = Math.cosh(currentP);
+                    const y = Math.sinh(currentP);
+                    ctx.lineTo(x, y); // Flipped y-coordinate to draw above the x-axis
+                }
+                ctx.closePath();
+                ctx.fill();
+            }
+
+            function drawVisualization() {
+                // Get current zoom level from slider
+                visualScale = parseFloat(zoomSlider.value);
+                elements.zoomDisplay.textContent = `Zoom Level: ${visualScale}`;
+
+                // Clear canvas
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                
+                // Set up coordinate system based on new scale
+                ctx.save();
+                ctx.translate(canvas.width / 2, canvas.height / 2);
+                ctx.scale(visualScale, -visualScale); // Invert y-axis for standard math coordinates
+
+                drawAxisAndGrid();
+                
+                // --- Calculations
+                const deg = parseFloat(slider.value);
+                const rad = deg * Math.PI / 180;
+                const s = Math.sin(rad);
+                const c = Math.cos(rad);
+                let t = s / c;
+                let sec = 1 / c;
+                let csc = 1 / s;
+                let cot = c / s;
+
+                // Handle poles
+                if (Math.abs(c) < EPSILON) {
+                    t = s > 0 ? Infinity : -Infinity;
+                    sec = s > 0 ? Infinity : -Infinity;
+                    cot = 0;
+                }
+                if (Math.abs(s) < EPSILON) {
+                    csc = c > 0 ? Infinity : -Infinity;
+                    cot = c > 0 ? Infinity : -Infinity;
+                    t = 0;
+                }
+
+                const Px = c;
+                const Py = s;
+
+                // --- Drawing
+                // Draw unit circle
+                ctx.strokeStyle = getCssVar('--color-circle');
+                ctx.lineWidth = 2 / visualScale;
+                ctx.beginPath();
+                ctx.arc(0, 0, 1, 0, 2 * Math.PI);
+                ctx.stroke();
+
+                // Draw hyperbolic elements only when cos(θ) is positive AND the toggles are checked
+                const isHyperbolicDefined = c > 0 && isFinite(sec + t) && (sec + t) > 0;
+                if (isHyperbolicDefined) {
+                    const p = Math.log(sec + t);
+                    const cosh_p = Math.cosh(p);
+                    const sinh_p = Math.sinh(p);
+                    
+                    if (document.getElementById('toggle-hyperbola').checked) {
+                        drawHyperbola(hyperbolaPoints);
+                    }
+                    
+                    if (document.getElementById('toggle-area').checked) {
+                        drawHyperbolicArea(p);
+                    }
+                    
+                    if (document.getElementById('toggle-sinh').checked) {
+                        // Draw sinh(p) line
+                        ctx.strokeStyle = getCssVar('--color-sinh');
+                        ctx.lineWidth = 3 / visualScale;
+                        ctx.beginPath();
+                        ctx.moveTo(cosh_p, 0);
+                        ctx.lineTo(cosh_p, sinh_p);
+                        ctx.stroke();
+                    }
+                    
+                    if (document.getElementById('toggle-cosh').checked) {
+                        // Draw cosh(p) line
+                        ctx.strokeStyle = getCssVar('--color-cosh');
+                        ctx.lineWidth = 3 / visualScale;
+                        ctx.beginPath();
+                        ctx.moveTo(0, sinh_p);
+                        ctx.lineTo(cosh_p, sinh_p);
+                        ctx.stroke();
+                    }
+                    
+                    // Draw point H and labels if any hyperbolic element is visible
+                    if (document.getElementById('toggle-sinh').checked || document.getElementById('toggle-cosh').checked) {
+                        ctx.fillStyle = getCssVar('--color-hyperbola');
+                        ctx.beginPath();
+                        ctx.arc(cosh_p, sinh_p, 4 / visualScale, 0, 2 * Math.PI);
+                        ctx.fill();
+
+                        const textFont = `bold ${16 / visualScale}px sans-serif`;
+                        const textColor = getCssVar('--color-text-label');
+                        drawUprightText('H', cosh_p + 0.1, sinh_p + 0.1, textFont, textColor);
+                    }
+
+                    // Update hyperbolic info values
+                    elements.valP.textContent = formatValue(p);
+                    elements.valSinh.textContent = formatValue(sinh_p);
+                    elements.valCosh.textContent = formatValue(cosh_p);
+                    elements.valTanh.textContent = formatValue(Math.tanh(p));
+                    elements.valArea.textContent = formatValue(p / 2);
+                } else {
+                    // Reset hyperbolic info values
+                    elements.valP.textContent = 'N/A';
+                    elements.valSinh.textContent = 'N/A';
+                    elements.valCosh.textContent = 'N/A';
+                    elements.valTanh.textContent = 'N/A';
+                    elements.valArea.textContent = 'N/A';
+                }
+
+                // Draw trigonometric lines
+                // Radius
+                ctx.strokeStyle = getCssVar('--color-radius');
+                ctx.lineWidth = 3 / visualScale;
+                ctx.beginPath();
+                ctx.moveTo(0, 0);
+                ctx.lineTo(Px, Py);
+                ctx.stroke();
+                
+                // Sin(theta)
+                if (document.getElementById('toggle-sin').checked) {
+                    ctx.strokeStyle = getCssVar('--color-sin');
+                    ctx.lineWidth = 3 / visualScale;
+                    ctx.beginPath();
+                    ctx.moveTo(Px, Py);
+                    ctx.lineTo(Px, 0);
+                    ctx.stroke();
+                }
+                
+                // Cos(theta)
+                if (document.getElementById('toggle-cos').checked) {
+                    ctx.strokeStyle = getCssVar('--color-cos');
+                    ctx.lineWidth = 3 / visualScale;
+                    ctx.beginPath();
+                    ctx.moveTo(Px, 0);
+                    ctx.lineTo(0, 0);
+                    ctx.stroke();
+                }
+                
+                // Tan(theta)
+                if (document.getElementById('toggle-tan').checked && isFinite(t)) {
+                    ctx.strokeStyle = getCssVar('--color-tan');
+                    ctx.lineWidth = 3 / visualScale;
+                    ctx.beginPath();
+                    ctx.moveTo(1, 0);
+                    ctx.lineTo(1, t);
+                    ctx.stroke();
+                }
+
+                // Cot(theta)
+                if (document.getElementById('toggle-cot').checked && isFinite(cot)) {
+                    ctx.strokeStyle = getCssVar('--color-cot');
+                    ctx.lineWidth = 3 / visualScale;
+                    ctx.beginPath();
+                    ctx.moveTo(0, 1);
+                    ctx.lineTo(cot, 1);
+                    ctx.stroke();
+                }
+                
+                // Sec(theta)
+                if (document.getElementById('toggle-sec').checked && isFinite(t)) {
+                    ctx.strokeStyle = getCssVar('--color-sec');
+                    ctx.lineWidth = 3 / visualScale;
+                    ctx.beginPath();
+                    ctx.moveTo(0, 0);
+                    ctx.lineTo(1, t);
+                    ctx.stroke();
+                }
+                
+                // Csc(theta)
+                if (document.getElementById('toggle-csc').checked && isFinite(cot)) {
+                    ctx.strokeStyle = getCssVar('--color-csc');
+                    ctx.lineWidth = 3 / visualScale;
+                    ctx.beginPath();
+                    ctx.moveTo(0, 0);
+                    ctx.lineTo(cot, 1);
+                    ctx.stroke();
+                }
+
+                // Draw point P and its label
+                ctx.fillStyle = getCssVar('--accent-color');
+                ctx.beginPath();
+                ctx.arc(Px, Py, 4 / visualScale, 0, 2 * Math.PI);
+                ctx.fill();
+
+                const textFont = `bold ${16 / visualScale}px sans-serif`;
+                const textColor = getCssVar('--color-text-label');
+
+                // Draw the arc for theta (θ) with the corrected color and direction
+                ctx.strokeStyle = getCssVar('--color-radius'); // Changed color to match radius line
+                ctx.lineWidth = 3 / visualScale;
+                ctx.beginPath();
+                ctx.arc(0, 0, 0.5, 0, rad); // Changed to draw counter-clockwise
+                ctx.stroke();
+
+
+                // Draw all text labels using the new helper function
+                const labelRadius = 0.4;
+                drawUprightText('θ', labelRadius * Math.cos(rad / 2), labelRadius * Math.sin(rad / 2), textFont, textColor);
+                drawUprightText('P', Px + 0.1, Py + 0.1, textFont, textColor);
+
+                // Add labels for sin, cos, tan, and cot if their lines are visible
+                if (document.getElementById('toggle-sin').checked) {
+                    drawUprightText('sin', Px, Py / 2, textFont, textColor);
+                }
+                if (document.getElementById('toggle-cos').checked) {
+                    drawUprightText('cos', Px / 2, 0, textFont, textColor);
+                }
+                if (document.getElementById('toggle-tan').checked && isFinite(t)) {
+                    drawUprightText('tan', 1, t / 2, textFont, textColor);
+                }
+                if (document.getElementById('toggle-cot').checked && isFinite(cot)) {
+                    drawUprightText('cot', cot / 2, 1, textFont, textColor);
+                }
+
+
+                // Update info panel values
+                elements.angleDisplay.textContent = `${deg.toFixed(1)}° / ${(rad).toFixed(3)} rad`;
+                slider.setAttribute('aria-valuetext', `Angle: ${deg.toFixed(1)} degrees`);
+                elements.valSin.textContent = formatValue(s);
+                elements.valCos.textContent = formatValue(c);
+                elements.valTan.textContent = formatValue(t);
+                elements.valSec.textContent = formatValue(sec);
+                elements.valCsc.textContent = formatValue(csc);
+                elements.valCot.textContent = formatValue(cot);
+
+                ctx.restore();
+            }
+
+            function handleResize() {
+                canvas.width = canvas.parentElement.clientWidth;
+                canvas.height = canvas.parentElement.clientHeight;
+                drawVisualization();
+            }
+
+            function initialize() {
+                slider.addEventListener('input', drawVisualization);
+                zoomSlider.addEventListener('input', drawVisualization);
+                checkboxes.forEach(checkbox => {
+                    checkbox.addEventListener('change', drawVisualization);
+                });
+                window.addEventListener('resize', handleResize);
+                
+                // Initial draw
+                handleResize();
+            }
+
+            initialize();
+        });
+    </script>
+</body>
+</html>
